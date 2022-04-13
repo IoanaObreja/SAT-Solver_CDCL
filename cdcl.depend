@@ -1,0 +1,71 @@
+# depslib dependency file v1.0
+1644848492 source:c:\users\lenovo\desktop\cdcl\src\clause.cpp
+	"Clause.h"
+	<list>
+
+1646573163 c:\users\lenovo\desktop\cdcl\include\clause.h
+	<list>
+
+1647255562 source:c:\users\lenovo\desktop\cdcl\src\formula.cpp
+	<fstream>
+	"Formula.h"
+	"Clause.h"
+
+1647020759 c:\users\lenovo\desktop\cdcl\include\formula.h
+	"Clause.h"
+	<map>
+
+1648804928 source:c:\users\lenovo\desktop\cdcl\main.cpp
+	<fstream>
+	<list>
+	"Clause.h"
+	<map>
+	<cstdlib>
+	"Formula.h"
+	"Variable.h"
+
+1648576702 c:\users\lenovo\desktop\cdcl\include\variable.h
+
+1646830464 source:c:\users\lenovo\desktop\cdcl\src\assignment.cpp
+	"Assignment.h"
+
+1646830464 c:\users\lenovo\desktop\cdcl\include\assignment.h
+
+1648575123 source:c:\users\lenovo\desktop\cdcl\src\variable.cpp
+	"Variable.h"
+
+1648811170 source:c:\users\lenovo\desktop\cdcl_github\cdcl-main\src\assignment.cpp
+	"Assignment.h"
+
+1648811170 c:\users\lenovo\desktop\cdcl_github\cdcl-main\include\assignment.h
+
+1648811170 source:c:\users\lenovo\desktop\cdcl_github\cdcl-main\src\clause.cpp
+	"Clause.h"
+	<list>
+
+1649863704 c:\users\lenovo\desktop\cdcl_github\cdcl-main\include\clause.h
+	<list>
+
+1648811170 source:c:\users\lenovo\desktop\cdcl_github\cdcl-main\src\formula.cpp
+	<fstream>
+	"Formula.h"
+	"Clause.h"
+
+1648811170 c:\users\lenovo\desktop\cdcl_github\cdcl-main\include\formula.h
+	"Clause.h"
+	<map>
+
+1648811170 source:c:\users\lenovo\desktop\cdcl_github\cdcl-main\src\variable.cpp
+	"Variable.h"
+
+1648811170 c:\users\lenovo\desktop\cdcl_github\cdcl-main\include\variable.h
+
+1649863889 source:c:\users\lenovo\desktop\cdcl_github\cdcl-main\main.cpp
+	<fstream>
+	<list>
+	"Clause.h"
+	<map>
+	<cstdlib>
+	"Formula.h"
+	"Variable.h"
+
