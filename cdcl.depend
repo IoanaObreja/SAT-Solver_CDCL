@@ -60,7 +60,7 @@
 
 1648811170 c:\users\lenovo\desktop\cdcl_github\cdcl-main\include\variable.h
 
-1649863889 source:c:\users\lenovo\desktop\cdcl_github\cdcl-main\main.cpp
+1649866922 source:c:\users\lenovo\desktop\cdcl_github\cdcl-main\main.cpp
 	<fstream>
 	<list>
 	"Clause.h"
@@ -68,4 +68,52 @@
 	<cstdlib>
 	"Formula.h"
 	"Variable.h"
+
+1648811170 source:e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\src\assignment.cpp
+	"Assignment.h"
+
+1648811170 e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\include\assignment.h
+
+1648811170 source:e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\src\clause.cpp
+	"Clause.h"
+	<list>
+
+1652370493 e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\include\clause.h
+	<list>
+
+1648811170 source:e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\src\formula.cpp
+	<fstream>
+	"Formula.h"
+	"Clause.h"
+
+1652285309 e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\include\formula.h
+	"Clause.h"
+	<map>
+
+1648811170 source:e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\src\variable.cpp
+	"Variable.h"
+
+1648811170 e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\include\variable.h
+
+1652381745 source:e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\main.cpp
+	<fstream>
+	<list>
+	"Clause.h"
+	<map>
+	<cstdlib>
+	"Formula.h"
+	"Variable.h"
+	"heuristics.h"
+	<string>
+
+1652371615 e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\heuristics.h
+	<limits>
+	<fstream>
+	<list>
+	"Clause.h"
+	<map>
+	<cstdlib>
+	"Formula.h"
+	"Variable.h"
+	<cmath>
 

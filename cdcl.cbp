@@ -34,6 +34,7 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="heuristics.h" />
 		<Unit filename="include/Clause.h" />
 		<Unit filename="include/Formula.h" />
 		<Unit filename="include/Variable.h" />

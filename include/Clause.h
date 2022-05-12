@@ -22,7 +22,6 @@ struct literal {
     }
 
 };
-
 class Clause
 {
     public:

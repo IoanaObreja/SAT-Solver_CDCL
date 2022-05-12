@@ -10,7 +10,7 @@ class Formula
         Formula(int, int);
         virtual ~Formula();
         list<Clause> clauses;
-        map<int, int> var_app;
+        map<int, float> var_app;
         int nrclauses, variables;
     protected:
     private:

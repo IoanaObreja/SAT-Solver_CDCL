@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include "Formula.h"
 #include "Variable.h"
+#include "heuristics.h"
+#include <string>
 using namespace std;
 
 ifstream f ("input.in");
@@ -12,6 +14,19 @@ ofstream g ("output.out");
 
 Formula readFormula(int variables, int clauses, map<int, Variable> &assignment) {
 
+    char c;
+    string s;
+    while(true) {
+        f>>c;
+        // if comment
+        if(c == 'c')
+            getline(f, s); //ignore
+        else { //is 'p'
+            f>>s; // 'cnf'
+            break;
+        }
+    }
+    f>>variables>>clauses;
     Formula formula(variables, clauses);
     int x;
     for(int i=0;i<clauses;i++) {
@@ -33,7 +48,6 @@ Formula readFormula(int variables, int clauses, map<int, Variable> &assignment) 
     }
     for(int i=0;i<=variables;i++)
         assignment[i].level = 0;
-
     return formula;
 }
 
@@ -44,7 +58,7 @@ void print(Formula formula) {
             g<<"clause "<<clause.index<<": ";
             for(literal lit: clause.lst) {
                 if(lit.flag == 0)
-                    g<<lit.name<<' '<<lit.flag<<' ';
+                    g<<lit.name<<' ';//<<lit.flag<<' ';
             }
             g<<'\n';
         }
@@ -164,14 +178,52 @@ bool AllVariablesAssigned(Formula formula, map<int, Variable> assignment) {
 
 }
 
-int pickBranchingVariable(Formula formula, map<int, Variable> assignment) {
+void pureLiteral(Formula &formula, map<int,Variable> &assignment, int level) {
 
-    /// for now, branching is done on the first literal found
+    int pureLit = 0;
+    /// find pure literal
+    for(int i=1;i<=formula.variables;i++) {
+        if(formula.var_app[i] == 0 && formula.var_app[(-1)*i] > 0) {
+            pureLit = i;
+            break;
+        }
+        if(formula.var_app[(-1)*i] == 0 && formula.var_app[i] > 0) {
+            pureLit = (-1)*i;
+            break;
+        }
+    }
+    /*
     for(auto& cls: formula.clauses)
         if(cls.flag == 0)
             for(auto& lit: cls.lst)
-                if(lit.flag == 0)
-                    return lit.name;
+                if(formula.var_app[lit.name * (-1)] == 0) {
+                    pureLit = lit.name;
+
+                }
+    */
+    /// add to assignment
+    if(pureLit) {
+        Variable var;
+        var.value = (pureLit < 0) ? -1 : 1;
+        var.level = level;
+        var.antecedent = 0;
+        assignment[abs(pureLit)] = var;
+
+        /// satisfy clauses that contain it
+        for(auto& cls: formula.clauses) {
+           if(cls.flag == 0)
+                for(auto& lit: cls.lst)
+                    if(lit.flag == 0 && lit.name == pureLit) {
+                        cls.flag = level;
+                        for(auto& lit2: cls.lst)
+                            if(lit.flag == 0 && lit.name != pureLit)
+                                formula.var_app[lit.name]--;
+                        continue;
+                    }
+        }
+
+        formula.var_app[pureLit] = 0;
+    }
 }
 
 bool empty_clause (Formula formula) {
@@ -258,6 +310,8 @@ int conflictAnalysis(Formula &formula, map<int, Variable> assignment, int confli
                 lit.flag = assignment[abs(lit.name)].value * assignment[abs(lit.name)].level;
                 if(assignment[abs(lit.name)].value < 0)
                     cls.nr_literals_false--;
+                if(lit.flag)
+                    formula.var_app[lit.name]--;
             }
 
     formula.clauses.push_back(learntClause);
@@ -295,21 +349,35 @@ void backtrack(Formula &formula, map<int, Variable> &assignment, int backtrackLe
 }
 
 string cdcl(Formula formula, map<int, Variable> &assignment) {
-    int level = 1, conflict = 0, backtrackLevel, lit = 0;
+    int level = 1, conflict = 0, backtrackLevel, lit = 0, conflicts = 0, restartInterval = 1000000;
 
     while(true) {
+        //print(formula);
+        //for(int i=1;i<=formula.variables;i++)
+        //    g<<i<<' '<<formula.var_app[i]<<' '<<formula.var_app[(-1)*i]<<'\n';
+        pureLiteral(formula, assignment, level);
         conflict = unit_propagation(formula, assignment, level, lit);
         if(conflict) {
             if(level == 1) return "UNSAT";
             backtrackLevel = conflictAnalysis(formula, assignment, conflict, level);
-            backtrack(formula, assignment, backtrackLevel);
-            lit = 0;
-            level = backtrackLevel;
+            if(conflicts++ == restartInterval) {
+                conflicts = 0;
+                restartInterval *= 1.5;
+                backtrack(formula, assignment, 2);
+                level = 2;
+                lit = 0;
+            }
+            else {
+                backtrack(formula, assignment, backtrackLevel);
+                lit = 0;
+                level = backtrackLevel;
+            }
         }
         else {
             if(AllVariablesAssigned(formula, assignment)) break;
             level++;
-            lit = pickBranchingVariable(formula, assignment);
+            lit = moms(formula);//, conflict);
+            //lit = moms(formula);
             //g<<"decided to branch on "<<lit<<'\n';
         }
     }
@@ -322,8 +390,9 @@ int main() {
     Formula formula;
     int variables, clauses;
     map<int, Variable> assignment;
-    f>>variables>>clauses;
+//    f>>variables>>clauses;
     formula = readFormula(variables, clauses, assignment);
+    //print(formula);
     g<<cdcl(formula, assignment);
 
     return 0;
