@@ -11,10 +11,9 @@
 using namespace std;
 ofstream gg ("output.out");
 
-
-int pickBranchingVariable(Formula formula, map<int, Variable> assignment) {
-
+int pickFirstFound(Formula formula) {
     /// returns first literal found
+
     for(auto& cls: formula.clauses)
         if(cls.flag == 0)
             for(auto& lit: cls.lst)
@@ -133,3 +132,32 @@ int VSIDS(Formula formula, int conflicts) {
     }
     return pickMostPopular(formula);
 }
+
+int pickBranchingVariable(Formula formula, int nr_conflicts, int heuristic) {
+
+    switch(heuristic){
+        case 1:
+            return pickFirstFound(formula);
+            break;
+        case 2:
+            return pickMostPopular(formula);
+            break;
+        case 3:
+            return moms(formula);
+            break;
+        case 4:
+            return positMOMS(formula);
+            break;
+        case 5:
+            return ZMmoms(formula);
+            break;
+        case 6:
+            return JeroslowWang(formula);
+            break;
+        case 7:
+            return VSIDS(formula, nr_conflicts);
+            break;
+
+    }
+}
+

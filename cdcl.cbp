@@ -45,6 +45,7 @@
 		<Unit filename="src/Clause.cpp" />
 		<Unit filename="src/Formula.cpp" />
 		<Unit filename="src/Variable.cpp" />
+		<Unit filename="test2.cnf" />
 		<Extensions>
 			<code_completion />
 			<envvars />

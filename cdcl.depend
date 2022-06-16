@@ -95,7 +95,7 @@
 
 1648811170 e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\include\variable.h
 
-1652381745 source:e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\main.cpp
+1655229404 source:e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\main.cpp
 	<fstream>
 	<list>
 	"Clause.h"
@@ -105,8 +105,9 @@
 	"Variable.h"
 	"heuristics.h"
 	<string>
+	<chrono>
 
-1652371615 e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\heuristics.h
+1655146088 e:\facultate\an 3\bachelor_thesis\desktop\cdcl_github\cdcl-main\heuristics.h
 	<limits>
 	<fstream>
 	<list>

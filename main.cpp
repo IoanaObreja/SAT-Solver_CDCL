@@ -7,13 +7,15 @@
 #include "Variable.h"
 #include "heuristics.h"
 #include <string>
+#include <chrono>
+using namespace std::chrono;
 using namespace std;
 
-ifstream f ("input.in");
 ofstream g ("output.out");
 
-Formula readFormula(int variables, int clauses, map<int, Variable> &assignment) {
+Formula readFormula(int variables, int clauses, map<int, Variable> &assignment, string file_name) {
 
+    ifstream f (file_name);
     char c;
     string s;
     while(true) {
@@ -48,27 +50,31 @@ Formula readFormula(int variables, int clauses, map<int, Variable> &assignment) 
     }
     for(int i=0;i<=variables;i++)
         assignment[i].level = 0;
+    f.close();
     return formula;
 }
 
 void print(Formula formula) {
 
     for(Clause clause: formula.clauses) {
-        if(clause.flag == 0) {
+        //if(clause.flag == 0) //{
             g<<"clause "<<clause.index<<": ";
             for(literal lit: clause.lst) {
-                if(lit.flag == 0)
-                    g<<lit.name<<' ';//<<lit.flag<<' ';
+                //if(lit.flag == 0)
+                    g<<lit.name<<' '<<lit.flag<<' ';
             }
             g<<'\n';
         }
-    }
+    //}
 }
 
 void printAssignment(map<int, Variable> assignment, Formula formula) {
 
     for(int i=1; i<=formula.variables; i++) {
-        g<<assignment[i].value * i<<' ';
+        if(assignment[i].value == 0)
+            g<<i<<' ';
+        else
+            g<<assignment[i].value * i<<' ';
         if(i % 10 == 0)
             g<<'\n';
     }
@@ -82,14 +88,9 @@ int find_unit_clause(Formula &formula, map<int, Variable> &assignment) {
         if(clause.flag == 0 && clause.nr_literals - clause.nr_literals_false == 1)
             for(auto& lit: clause.lst) {
                 if(lit.flag == 0) {
-                    if(lit.name > 0) {
-                        assignment[lit.name].value = 1;
-                        assignment[lit.name].antecedent = clause.index;
-                    }
-                    else {
-                        assignment[(-1)*lit.name].value = -1;
-                        assignment[(-1)*lit.name].antecedent = clause.index;
-                    }
+                    assignment[abs(lit.name)].value = (lit.name > 0 ? 1 : 0);
+                    if(clause.nr_literals > 1)
+                        assignment[abs(lit.name)].antecedent = clause.index;
                     return lit.name;
                 }
             }
@@ -100,27 +101,12 @@ int unit_propagation(Formula &formula, map<int, Variable> &assignment, int level
 
     /// if no literal given, find unit clause
     /// antecedent of decision variable is NULL (0)
-    if(!unitLiteral) {
+    if(unitLiteral == 0)
         unitLiteral = find_unit_clause(formula, assignment);
-        if(unitLiteral > 0) {
-            assignment[unitLiteral].level = level;
-        }
-        else {
-            assignment[(-1)*unitLiteral].level = level;
-        }
-    }
-    else {
-        if(unitLiteral > 0) {
-            assignment[unitLiteral].value = 1;
-            assignment[unitLiteral].level = level;
-            assignment[unitLiteral].antecedent = 0;
-        }
-        else {
-            assignment[(-1)*unitLiteral].value = -1;
-            assignment[(-1)*unitLiteral].level = level;
-            assignment[(-1)*unitLiteral].antecedent = 0;
-        }
-    }
+
+    assignment[abs(unitLiteral)].value = (unitLiteral > 0)? 1 : -1;
+    assignment[abs(unitLiteral)].level = level;
+    //assignment[abs(unitLiteral)].antecedent = 0;
 
     /// find implied literals
     /// clauses that contain it are satisfied
@@ -131,7 +117,6 @@ int unit_propagation(Formula &formula, map<int, Variable> &assignment, int level
         formula.var_app[(-1)*unitLiteral] = 0;
 
         for(auto& clause: formula.clauses) {
-
             if(clause.flag == 0)
                 for(auto& lit: clause.lst) {
                     if(lit.flag == 0 && lit.name == (-1)*unitLiteral) {
@@ -150,18 +135,14 @@ int unit_propagation(Formula &formula, map<int, Variable> &assignment, int level
                     }
             /// check if there is a conflict and return index of that clause
             if(clause.nr_literals_false == clause.nr_literals) {
-                //g<<"conflict at clause "<<clause.index<<'\n';
                 return clause.index;
             }
         }
+
         unitLiteral = find_unit_clause(formula, assignment);
         if(unitLiteral) {
-            if(unitLiteral > 0) {
-                assignment[unitLiteral].level = level;
-            }
-            else {
-                assignment[(-1)*unitLiteral].level = level;
-            }
+            assignment[abs(unitLiteral)].value = (unitLiteral > 0)? 1 : -1;
+            assignment[abs(unitLiteral)].level = level;
         }
     }
     /// if no conflict return 0
@@ -184,11 +165,11 @@ void pureLiteral(Formula &formula, map<int,Variable> &assignment, int level) {
     /// find pure literal
     for(int i=1;i<=formula.variables;i++) {
         if(formula.var_app[i] == 0 && formula.var_app[(-1)*i] > 0) {
-            pureLit = i;
+            pureLit = (-1)*i;
             break;
         }
         if(formula.var_app[(-1)*i] == 0 && formula.var_app[i] > 0) {
-            pureLit = (-1)*i;
+            pureLit = i;
             break;
         }
     }
@@ -202,12 +183,15 @@ void pureLiteral(Formula &formula, map<int,Variable> &assignment, int level) {
                 }
     */
     /// add to assignment
+    //g<<"pure literal "<<pureLit<<'\n';
     if(pureLit) {
         Variable var;
         var.value = (pureLit < 0) ? -1 : 1;
         var.level = level;
         var.antecedent = 0;
         assignment[abs(pureLit)] = var;
+
+        //g<<"pure literal "<<pureLit<<'\n';
 
         /// satisfy clauses that contain it
         for(auto& cls: formula.clauses) {
@@ -269,10 +253,17 @@ int conflictAnalysis(Formula &formula, map<int, Variable> assignment, int confli
     /// add it to the formula
     /// return the level to backtrack to
 
+    //printAssignment(assignment, formula);
+    //g<<"conlfict al level "<<conflictLevel<<'\n';
+    //g<<"conlfict al clause "<<conflictIndex;
     Clause cls2, learntClause;
     int cnt = 0, lit, complementaryLit;
     learntClause = getClausefromIndex(conflictIndex, formula);
-
+    /*
+    g<<"Conflict clause; ";
+    for(auto& lit: learntClause.lst)
+        g<<lit.name<<' '<<lit.flag<<' '<<assignment[abs(lit.name)].antecedent<<' ';
+    g<<'\n';*/
     do {
         cnt = 0;
         for(auto& l: learntClause.lst) {
@@ -282,11 +273,13 @@ int conflictAnalysis(Formula &formula, map<int, Variable> assignment, int confli
             if(assignment[lit].level == conflictLevel && assignment[lit].antecedent != 0) {
                 cls2 = getClausefromIndex(assignment[lit].antecedent, formula);
                 complementaryLit = lit;
+                //g<<"complementray lit "<<complementaryLit<<'\n';
             }
         }
         if(cnt == 1)
             break;
         learntClause = resolution(learntClause, cls2, formula, complementaryLit);
+
     }while(true);
 
     int backtrackLevel = 0;
@@ -301,21 +294,24 @@ int conflictAnalysis(Formula &formula, map<int, Variable> assignment, int confli
     g<<"Learned clause:\n ";
     for(auto& lit:learntClause.lst)
         g<<lit.name<<' ';
-    g<<'\n';*/
-    //g<<"Backtrack level: "<<backtrackLevel<<'\n';
+    g<<"c\n";
+    g<<"Backtrack level: "<<backtrackLevel<<'\n';*/
     learntClause.index = ++formula.nrclauses;
-    for(auto& cls: formula.clauses)
-        if(cls.index == formula.nrclauses)
-            for(auto& lit: cls.lst) {
-                lit.flag = assignment[abs(lit.name)].value * assignment[abs(lit.name)].level;
-                if(assignment[abs(lit.name)].value < 0)
-                    cls.nr_literals_false--;
-                if(lit.flag)
-                    formula.var_app[lit.name]--;
-            }
+    learntClause.nr_literals = learntClause.lst.size();
+    for(auto& lit: learntClause.lst) {
+        if(assignment[abs(lit.name)].value != 0)
+            lit.flag = (lit.name * assignment[abs(lit.name)].value > 0)?
+                            assignment[abs(lit.name)].level :
+                            (-1)*assignment[abs(lit.name)].level;
+            if(lit.flag < 0)
+                learntClause.nr_literals_false++;
+    }
+    if(learntClause.nr_literals - learntClause.nr_literals_false == 1)
+        for(auto lit: learntClause.lst)
+            if(lit.flag == 0)
+                assignment[abs(lit.name)].antecedent = learntClause.index;
 
     formula.clauses.push_back(learntClause);
-
     return backtrackLevel;
 
 }
@@ -348,20 +344,19 @@ void backtrack(Formula &formula, map<int, Variable> &assignment, int backtrackLe
     }
 }
 
-string cdcl(Formula formula, map<int, Variable> &assignment) {
-    int level = 1, conflict = 0, backtrackLevel, lit = 0, conflicts = 0, restartInterval = 1000000;
-
+string cdcl(Formula formula, map<int, Variable> &assignment, int heuristic) {
+    int level = 1, conflict = 0, backtrackLevel, lit = 0, nr_conflicts = 0, restartInterval = 100;
+    pureLiteral(formula, assignment, level);
     while(true) {
         //print(formula);
         //for(int i=1;i<=formula.variables;i++)
         //    g<<i<<' '<<formula.var_app[i]<<' '<<formula.var_app[(-1)*i]<<'\n';
-        pureLiteral(formula, assignment, level);
         conflict = unit_propagation(formula, assignment, level, lit);
         if(conflict) {
-            if(level == 1) return "UNSAT";
+            if(level == 1) return "UNSAT\n";
             backtrackLevel = conflictAnalysis(formula, assignment, conflict, level);
-            if(conflicts++ == restartInterval) {
-                conflicts = 0;
+            if(nr_conflicts++ == restartInterval) {
+                nr_conflicts = 0;
                 restartInterval *= 1.5;
                 backtrack(formula, assignment, 2);
                 level = 2;
@@ -374,15 +369,37 @@ string cdcl(Formula formula, map<int, Variable> &assignment) {
             }
         }
         else {
-            if(AllVariablesAssigned(formula, assignment)) break;
+            if(empty_formula(formula)) break;
             level++;
-            lit = moms(formula);//, conflict);
-            //lit = moms(formula);
+            lit = pickBranchingVariable(formula, nr_conflicts, heuristic);//, conflict);
             //g<<"decided to branch on "<<lit<<'\n';
         }
     }
     printAssignment(assignment, formula);
-    return "SAT";
+    return "SAT\n";
+}
+
+void tester() {
+
+    list<string> files;
+    files.push_back("input.in");
+    //files.push_back("test2.cnf");
+
+    for(string file: files) {
+
+        g<<file<<'\n';
+        for(int i=1;i<=7;i++) {
+            Formula formula;
+            int variables, clauses;
+            map<int, Variable> assignment;
+            formula = readFormula(variables, clauses, assignment, file);
+            auto start = high_resolution_clock::now();
+            cdcl(formula, assignment, i);
+            auto stop = high_resolution_clock::now();
+            auto duration = duration_cast<milliseconds>(stop - start);
+            g << duration.count()/1000.0<<'\n';
+        }
+    }
 }
 
 int main() {
@@ -390,10 +407,12 @@ int main() {
     Formula formula;
     int variables, clauses;
     map<int, Variable> assignment;
-//    f>>variables>>clauses;
-    formula = readFormula(variables, clauses, assignment);
-    //print(formula);
-    g<<cdcl(formula, assignment);
-
+    formula = readFormula(variables, clauses, assignment, "input.in");
+    auto start = high_resolution_clock::now();
+    g<<cdcl(formula, assignment, 3);
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(stop - start);
+    g << duration.count()/1000.0<<'\n';
+    //tester();
     return 0;
 }
